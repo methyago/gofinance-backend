@@ -1,4 +1,4 @@
-module github.com/GustavoNoronha0/go-finance
+module github.com/methyago/gofinance-backend
 
 go 1.18
 

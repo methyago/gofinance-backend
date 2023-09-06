@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/GustavoNoronha0/go-finance/db/util"
+	"github.com/methyago/gofinance-backend/util"
 	"github.com/stretchr/testify/require"
 )
 
