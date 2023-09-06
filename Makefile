@@ -13,10 +13,13 @@ startPostgres:
 migrateInit:
 	migrate create -ext sql -dir db/migration -seq initial_tables
 
-migreateUp:
+migrateup:
 	migrate --path db/migration -database "postgresql://postgres:postgres@localhost:5432/go_finance?sslmode=disable" -verbose up
 
-migrateDown:
-	migrate --path db/migration -database "postgresql://postgres:postgres@localhost:5432/go_finance?sslmode=disable" -verbose down
+migratedrop:
+	migrate --path db/migration -database "postgresql://postgres:postgres@localhost:5432/go_finance?sslmode=disable" -verbose drop
 
-.PHONY: createDb runPostgres
+test:
+	go test -v -cover ./...
+
+.PHONY: createDb runPostgres migrateup migratedrop test
