@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	db "github.com/methyago/gofinance-backend/db/sqlc"
+	"github.com/methyago/gofinance-backend/util"
 )
 
 type createCategoryRequest struct {
@@ -16,8 +17,13 @@ type createCategoryRequest struct {
 }
 
 func (server *Server) createCategory(ctx *gin.Context) {
+	err := util.GetTokenInHeaderAndVerify(ctx)
+	if err != nil {
+		return
+	}
+
 	var req createCategoryRequest
-	err := ctx.ShouldBindJSON(&req)
+	err = ctx.ShouldBindJSON(&req)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
@@ -44,8 +50,13 @@ type getCategoryRequest struct {
 }
 
 func (server *Server) getCategory(ctx *gin.Context) {
+	err := util.GetTokenInHeaderAndVerify(ctx)
+	if err != nil {
+		return
+	}
+
 	var req getCategoryRequest
-	err := ctx.ShouldBindUri(&req)
+	err = ctx.ShouldBindUri(&req)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
@@ -69,8 +80,13 @@ type deleteCategoryRequest struct {
 }
 
 func (server *Server) deleteCategory(ctx *gin.Context) {
+	err := util.GetTokenInHeaderAndVerify(ctx)
+	if err != nil {
+		return
+	}
+
 	var req deleteCategoryRequest
-	err := ctx.ShouldBindUri(&req)
+	err = ctx.ShouldBindUri(&req)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
@@ -94,9 +110,14 @@ type updateCategoryRequest struct {
 }
 
 func (server *Server) updateCategory(ctx *gin.Context) {
+	err := util.GetTokenInHeaderAndVerify(ctx)
+	if err != nil {
+		return
+	}
+
 	var reqUri updateCategoryIdRequest
 
-	err := ctx.ShouldBindUri(&reqUri)
+	err = ctx.ShouldBindUri(&reqUri)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
@@ -132,8 +153,13 @@ type listCategoriesRequest struct {
 }
 
 func (server *Server) getCategories(ctx *gin.Context) {
+	err := util.GetTokenInHeaderAndVerify(ctx)
+	if err != nil {
+		return
+	}
+
 	var req listCategoriesRequest
-	err := ctx.ShouldBindJSON(&req)
+	err = ctx.ShouldBindJSON(&req)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
