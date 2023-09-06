@@ -1,2 +1,4 @@
 sqlc
 .env
+commands
+/tmp
