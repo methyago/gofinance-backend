@@ -7,11 +7,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 	db "github.com/methyago/gofinance-backend/db/sqlc"
-	"github.com/methyago/gofinance-backend/util"
 )
 
 type createAccountRequest struct {
-	UserID      int32     `json:"user_id" binding:"required"`
 	Title       string    `json:"title" binding:"required"`
 	Type        string    `json:"type" binding:"required"`
 	Description string    `json:"description" binding:"required"`
@@ -21,13 +19,13 @@ type createAccountRequest struct {
 }
 
 func (server *Server) createAccount(ctx *gin.Context) {
-	err := util.GetTokenInHeaderAndVerify(ctx)
-	if err != nil {
+	userClaims := server.GetTokenInHeaderAndVerify(ctx)
+	if userClaims == nil {
 		return
 	}
 
 	var req createAccountRequest
-	err = ctx.ShouldBindJSON(&req)
+	err := ctx.ShouldBindJSON(&req)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
@@ -50,7 +48,7 @@ func (server *Server) createAccount(ctx *gin.Context) {
 		Title:       req.Title,
 		Type:        req.Type,
 		Description: req.Description,
-		UserID:      req.UserID,
+		UserID:      cat.UserID,
 		CategoryID:  req.CategoryID,
 		Date:        req.Date,
 		Value:       req.Value,
@@ -70,13 +68,13 @@ type getAccountRequest struct {
 }
 
 func (server *Server) getAccount(ctx *gin.Context) {
-	err := util.GetTokenInHeaderAndVerify(ctx)
-	if err != nil {
+	userClaims := server.GetTokenInHeaderAndVerify(ctx)
+	if userClaims == nil {
 		return
 	}
 
 	var req getAccountRequest
-	err = ctx.ShouldBindUri(&req)
+	err := ctx.ShouldBindUri(&req)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
@@ -100,13 +98,13 @@ type deleteAccountRequest struct {
 }
 
 func (server *Server) deleteAccount(ctx *gin.Context) {
-	err := util.GetTokenInHeaderAndVerify(ctx)
-	if err != nil {
+	userClaims := server.GetTokenInHeaderAndVerify(ctx)
+	if userClaims == nil {
 		return
 	}
 
 	var req deleteAccountRequest
-	err = ctx.ShouldBindUri(&req)
+	err := ctx.ShouldBindUri(&req)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
@@ -132,13 +130,13 @@ type updateAccountRequest struct {
 }
 
 func (server *Server) updateAccount(ctx *gin.Context) {
-	err := util.GetTokenInHeaderAndVerify(ctx)
-	if err != nil {
+	userClaims := server.GetTokenInHeaderAndVerify(ctx)
+	if userClaims == nil {
 		return
 	}
 
 	var reqUri updateAccountIdRequest
-	err = ctx.ShouldBindUri(&reqUri)
+	err := ctx.ShouldBindUri(&reqUri)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
@@ -168,29 +166,28 @@ func (server *Server) updateAccount(ctx *gin.Context) {
 }
 
 type listAccountsRequest struct {
-	UserID      int32     `json:"user_id" binding:"required"`
-	Type        string    `json:"type" binding:"required"`
-	CategoryID  int32     `json:"category_id"`
-	Title       string    `json:"title"`
-	Description string    `json:"description"`
-	Date        time.Time `json:"date"`
+	Type        string    `form: "type" json:"type" binding:"required"`
+	CategoryID  int32     `form: "category_id" json:"category_id"`
+	Title       string    `form: "title" json:"title"`
+	Description string    `form: "description" json:"description"`
+	Date        time.Time `form: "description" json:"date"`
 }
 
 func (server *Server) getAccounts(ctx *gin.Context) {
-	err := util.GetTokenInHeaderAndVerify(ctx)
-	if err != nil {
+	userClaims := server.GetTokenInHeaderAndVerify(ctx)
+	if userClaims == nil {
 		return
 	}
 
 	var req listAccountsRequest
-	err = ctx.ShouldBindJSON(&req)
+	err := ctx.ShouldBindQuery(&req)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
 
 	arg := db.GetAccountsParams{
-		UserID:      req.UserID,
+		UserID:      userClaims.UserID,
 		Type:        req.Type,
 		Title:       req.Title,
 		Description: req.Description,
@@ -214,25 +211,24 @@ func (server *Server) getAccounts(ctx *gin.Context) {
 }
 
 type getAccountGraphRequest struct {
-	UserID int32  `json:"user_id" binding:"required"`
-	Type   string `json:"type" binding:"required"`
+	Type string `json:"type" binding:"required"`
 }
 
 func (server *Server) getAccountGraph(ctx *gin.Context) {
-	err := util.GetTokenInHeaderAndVerify(ctx)
-	if err != nil {
+	userClaims := server.GetTokenInHeaderAndVerify(ctx)
+	if userClaims == nil {
 		return
 	}
 
 	var req getAccountGraphRequest
-	err = ctx.ShouldBindJSON(&req)
+	err := ctx.ShouldBindJSON(&req)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
 
 	arg := db.GetAccountGraphParams{
-		UserID: req.UserID,
+		UserID: userClaims.UserID,
 		Type:   req.Type,
 	}
 
@@ -246,25 +242,24 @@ func (server *Server) getAccountGraph(ctx *gin.Context) {
 }
 
 type getAccountReportsRequest struct {
-	UserID int32  `json:"user_id" binding:"required"`
-	Type   string `json:"type" binding:"required"`
+	Type string `json:"type" binding:"required"`
 }
 
 func (server *Server) getAccountsReports(ctx *gin.Context) {
-	err := util.GetTokenInHeaderAndVerify(ctx)
-	if err != nil {
+	userClaims := server.GetTokenInHeaderAndVerify(ctx)
+	if userClaims == nil {
 		return
 	}
 
 	var req getAccountReportsRequest
-	err = ctx.ShouldBindJSON(&req)
+	err := ctx.ShouldBindJSON(&req)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
 
 	arg := db.GetAccountsReportsParams{
-		UserID: req.UserID,
+		UserID: userClaims.UserID,
 		Type:   req.Type,
 	}
 

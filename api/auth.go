@@ -5,6 +5,7 @@ import (
 	"crypto/sha512"
 	"database/sql"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -17,9 +18,15 @@ type loginRequest struct {
 	Password string `json:"password" binding:"required"`
 }
 
-type Claims struct {
+type MyCustomClaims struct {
 	Username string `json:"username"`
 	jwt.RegisteredClaims
+}
+
+type loginResponseStruct struct {
+	UserID   int32  `json:"user_id"`
+	UserName string `json:"username"`
+	Token    string `json:"token"`
 }
 
 func (server *Server) login(ctx *gin.Context) {
@@ -51,8 +58,8 @@ func (server *Server) login(ctx *gin.Context) {
 		return
 	}
 
-	expirationTime := time.Now().Add(100 * time.Minute)
-	claims := &Claims{
+	expirationTime := time.Now().Add(24 * time.Hour)
+	claims := &MyCustomClaims{
 		Username: req.Username,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expirationTime),
@@ -67,5 +74,71 @@ func (server *Server) login(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
-	ctx.JSON(http.StatusOK, generatedTokenString)
+
+	result := loginResponseStruct{
+		UserID:   user.ID,
+		UserName: user.Username,
+		Token:    generatedTokenString,
+	}
+	ctx.JSON(http.StatusOK, result)
+}
+
+func validateToken(ctx *gin.Context, token string) (error, string) {
+	var jwtSignedKey = []byte("secret_key")
+	tokenParse, err := jwt.ParseWithClaims(token, &MyCustomClaims{},
+		func(t *jwt.Token) (interface{}, error) {
+			return jwtSignedKey, nil
+		})
+
+	if err != nil {
+		if err == jwt.ErrSignatureInvalid {
+			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+			return err, ""
+		}
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return err, ""
+	}
+
+	claims := tokenParse.Claims.(*MyCustomClaims)
+
+	if !tokenParse.Valid {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Token is invalid"})
+		return &gin.Error{}, ""
+	}
+
+	ctx.Next()
+	return nil, claims.Username
+
+}
+
+type UserClaims struct {
+	UserID   int32
+	UserName string
+}
+
+func (server *Server) GetTokenInHeaderAndVerify(ctx *gin.Context) *UserClaims {
+	authorizationHeaderKey := ctx.GetHeader("Authorization")
+	fields := strings.Fields(authorizationHeaderKey)
+
+	if len(fields) < 2 {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return nil
+	}
+
+	tokenToValidade := fields[1]
+	err, username := validateToken(ctx, tokenToValidade)
+	if err != nil || username == "" {
+		return nil
+	}
+
+	user, err := server.store.GetUser(ctx, username)
+	if err != nil {
+		return nil
+	}
+
+	return &UserClaims{
+		UserID:   user.ID,
+		UserName: user.Username,
+	}
+
 }
