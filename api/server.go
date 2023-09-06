@@ -15,8 +15,23 @@ func NewServer(store *db.SQLStore) Server {
 	router := gin.Default()
 
 	router.POST("/user", server.createUser)
-	router.GET("/get/:username", server.getUser)
-	router.GET("/get/:id", server.getUserById)
+	router.GET("/user/:username", server.getUser)
+	router.GET("/user/id/:id", server.getUserById)
+
+	router.POST("/category", server.createCategory)
+	router.GET("/category/:id", server.getCategory)
+	router.GET("/categories", server.getCategories)
+	router.DELETE("/category/:id", server.deleteCategory)
+	router.PUT("/category/:id", server.updateCategory)
+
+	router.POST("/account", server.createAccount)
+	router.GET("/account/:id", server.getAccount)
+	router.GET("/accounts", server.getAccounts)
+	router.DELETE("/account/:id", server.deleteAccount)
+	router.PUT("/account/:id", server.updateAccount)
+
+	router.GET("/account/graph", server.getAccountGraph)
+	router.GET("/account/reports", server.getAccountsReports)
 
 	server.router = router
 	return *server
@@ -27,6 +42,6 @@ func (server *Server) Start(address string) error {
 }
 
 func errorResponse(err error) gin.H {
-	return gin.H{"api has error:": err.Error()}
+	return gin.H{"error:": err.Error()}
 
 }
