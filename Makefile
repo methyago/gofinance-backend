@@ -25,4 +25,7 @@ test:
 server:
 	go run main.go
 
-.PHONY: createDb runPostgres migrateup migratedrop test server
+sqlcGen:
+	./sql generate
+
+.PHONY: createDb runPostgres migrateup migratedrop test server sqlcGen

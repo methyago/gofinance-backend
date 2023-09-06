@@ -114,20 +114,20 @@ SELECT a.id, a.user_id,
   FROM accounts a
   LEFT JOIN categories c on c.id = a.category_id
  WHERE a.user_id = $1 
-   AND a.type = $2 
-   AND a.category_id =$3
-   AND a.title LIKE $4 
-   AND a.description LIKE $5
-   AND a.date = $6
+   AND a.type = $2
+   AND a.category_id = COALESCE($3, a.category_id)
+   AND (UPPER(a.title) LIKE CONCAT('%', UPPER($4::text), '%'))
+   AND (UPPER(a.description) LIKE CONCAT('%', UPPER($5::text), '%'))
+   AND a.date = COALESCE($6, a.date)
 `
 
 type GetAccountsParams struct {
-	UserID      int32     `json:"user_id"`
-	Type        string    `json:"type"`
-	CategoryID  int32     `json:"category_id"`
-	Title       string    `json:"title"`
-	Description string    `json:"description"`
-	Date        time.Time `json:"date"`
+	UserID      int32         `json:"user_id"`
+	Type        string        `json:"type"`
+	CategoryID  sql.NullInt32 `json:"category_id"`
+	Title       string        `json:"title"`
+	Description string        `json:"description"`
+	Date        sql.NullTime  `json:"date"`
 }
 
 type GetAccountsRow struct {

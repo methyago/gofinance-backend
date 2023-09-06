@@ -35,6 +35,7 @@ func NewServer(store *db.SQLStore) Server {
 
 	server.router = router
 	return *server
+
 }
 
 func (server *Server) Start(address string) error {

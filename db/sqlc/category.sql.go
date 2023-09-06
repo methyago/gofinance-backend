@@ -55,7 +55,11 @@ func (q *Queries) DeleteCategory(ctx context.Context, id int32) error {
 }
 
 const getCategories = `-- name: GetCategories :many
-SELECT id, title, type, description, user_id, created_at FROM categories WHERE user_id = $1 AND type = $2 AND title LIKE $3 AND description LIKE $4
+SELECT id, title, type, description, user_id, created_at FROM categories 
+ WHERE user_id = $1
+   AND type = $2
+   AND (UPPER(title) LIKE CONCAT('%', UPPER($3::text), '%'))
+   AND (UPPER(description) LIKE CONCAT('%', UPPER($4::text), '%'))
 `
 
 type GetCategoriesParams struct {

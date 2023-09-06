@@ -11,7 +11,11 @@ RETURNING *;
 SELECT * FROM categories WHERE id = $1 LIMIT 1;
 
 -- name: GetCategories :many
-SELECT * FROM categories WHERE user_id = $1 AND type = $2 AND title LIKE $3 AND description LIKE $4;
+SELECT * FROM categories 
+ WHERE user_id = @user_id
+   AND type = @type
+   AND (UPPER(title) LIKE CONCAT('%', UPPER(@title::text), '%'))
+   AND (UPPER(description) LIKE CONCAT('%', UPPER(@description::text), '%'));
 
 -- name: UpdateCategories :one
 UPDATE categories SET title = $2, description = $3 WHERE id = $1 RETURNING *;
